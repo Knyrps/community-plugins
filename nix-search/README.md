@@ -20,10 +20,10 @@ Type /nix [query] in the launcher to fuzzy-search every index your nix-search-tv
 
 Press Enter on a result to open its action list:
 
-Copy the attribute or option name to the clipboard
-Show documentation - renders nix-search-tv preview in your terminal
-nix shell nixpkgs#… - opens a shell with the package (nixpkgs results only)
-Open on search.nixos.org (nixpkgs results only)
+- Copy the attribute or option name to the clipboard
+- Show documentation - renders nix-search-tv preview in your terminal
+- nix shell nixpkgs#… - opens a shell with the package (nixpkgs results only)
+- Open on search.nixos.org (nixpkgs results only)
 
 The key list is refreshed from nix-search-tv once a day in the background. Trigger a refresh manually with:
 
