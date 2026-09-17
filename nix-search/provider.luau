@@ -9,6 +9,14 @@ local GLYPH = {
     darwin         = "brand-apple",
 }
 
+local ICON_DIRS = {
+    "/run/current-system/sw/share/icons/hicolor",
+    (os.getenv("HOME") or "") .. "/.nix-profile/share/icons/hicolor",
+    "/etc/profiles/per-user/" .. (os.getenv("USER") or "") .. "/share/icons/hicolor",
+}
+
+type Info = { desc: string?, home: string?, icon: string? }
+
 local function shellQuote(s: string): string
     local q = s:gsub("'", "'\\''")
     return "'" .. q .. "'"
@@ -21,35 +29,85 @@ do
     end
 end
 
-local function actionsFor(line: string)
+local function packageIcon(name: string): string?
+    for _, dir in ICON_DIRS do
+        if noctalia.fileExists(dir .. "/scalable/apps/" .. name .. ".svg")
+        or noctalia.fileExists(dir .. "/48x48/apps/" .. name .. ".png")
+        or noctalia.fileExists(dir .. "/128x128/apps/" .. name .. ".png") then
+            return name
+        end
+    end
+    return nil
+end
+
+local function parsePreview(out: string): (string, string?)
+    local lines = {}
+    for l in out:gmatch("[^\n]+") do
+        local t = l:gsub("^%s+", ""):gsub("%s+$", "")
+        if #t > 0 then
+            table.insert(lines, t)
+        end
+    end
+    local desc = lines[2] or lines[1] or ""
+    local home = out:match("[Hh]omepage:?%s*(%S+)")
+    return desc, home
+end
+
+local function actionsFor(line: string, info: Info?)
     local idx, key = line:match("^(%S+)/%s*(.+)$")
+    if not idx or not key then
+        return {}
+    end
+    local i: Info = info or {}
+
     local acts = {
-        { id = "copy|" .. key,    title = "Copy “" .. key .. "”",     glyph = "copy" },
-        { id = "preview|" .. line, title = "Show documentation",       glyph = "book" },
+        {
+            id = "info|" .. line,
+            title = key,
+            subtitle = i.desc or "Loading documentation…",
+            icon = i.icon,
+            glyph = if i.icon == nil then (GLYPH[idx] or "search") else nil,
+            query = "/nix > " .. line,
+        },
+        { id = "copy|" .. key, title = "Copy “" .. key .. "”", glyph = "copy" },
     }
 
     if idx == "nixpkgs" then
         table.insert(acts, { id = "shell|" .. key, title = "nix shell nixpkgs#" .. key, glyph = "terminal" })
         table.insert(acts, { id = "web|https://search.nixos.org/packages?query=" .. noctalia.string.urlEncode(key), title = "Open on search.nixos.org", glyph = "world" })
     end
+    if i.home then
+        table.insert(acts, { id = "web|" .. i.home, title = "Open homepage", glyph = "link" })
+    end
 
     return acts
 end
 
+local function showActions(text: string, line: string)
+    launcher.setResults(text, actionsFor(line))
+    noctalia.runAsync({ "nix-search-tv", "preview", line }, function(result)
+        local desc, home = parsePreview(result.stdout)
+        local idx, key = line:match("^(%S+)/%s*(.+)$")
+        local icon = if idx == "nixpkgs" and key then packageIcon(key) else nil
+        launcher.setResults(text, actionsFor(line, { desc = desc, home = home, icon = icon }))
+    end)
+end
+
 function onQuery(text: string)
     local path = keysPath
-    if path == nil then launcher.setResults(text, {});
+    if path == nil then
+        launcher.setResults(text, {})
         return
     end
 
     local sel = text:match("^>%s*(.+)$")
     if sel then
-        launcher.setResults(text, actionsFor(sel))
+        showActions(text, sel)
         return
     end
 
     if #text < 2 then
-        launcher.setResults(text, {});
+        launcher.setResults(text, {})
         return
     end
     launcher.setResults(text, { { id = "loading", title = "Searching…", glyph = "loader" } })
@@ -70,9 +128,8 @@ end
 
 function onActivate(id: string)
     local kind, arg = id:match("^(%w+)|(.+)$")
-    if kind == "copy"    then noctalia.copyToClipboard(arg, "text/plain")
-    elseif kind == "preview" then noctalia.runInTerminal("nix-search-tv preview " .. shellQuote(arg) .. " | less -R")
-    elseif kind == "shell"   then noctalia.runInTerminal("nix shell nixpkgs#" .. arg)
-    elseif kind == "web"     then noctalia.runAsync({ "xdg-open", arg })
+    if kind == "copy" then noctalia.copyToClipboard(arg, "text/plain")
+    elseif kind == "shell" then noctalia.runInTerminal("nix shell nixpkgs#" .. arg)
+    elseif kind == "web" then noctalia.runAsync({ "xdg-open", arg })
     end
 end
