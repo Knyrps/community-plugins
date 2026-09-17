@@ -7,6 +7,7 @@ license      = "MIT"
 description  = "Search nixpkgs, NixOS, Home Manager and NUR from the launcher via nix-search-tv"
 tags         = ["launcher", "service", "utility", "development"]
 dependencies = ["nix-search-tv", "fzf"]
+icon         = ""
 
 [[launcher_provider]]
 id          = "nix-search-provider"
