@@ -1,7 +1,6 @@
-# Plugin Name
+# Nix Search
 
-Explain in one or two sentences what the plugin does and why someone would use
-it.
+Search nixpkgs, NixOS, Home Manager and NUR from the launcher via nix-search-tv
 
 ## Plugin
 
