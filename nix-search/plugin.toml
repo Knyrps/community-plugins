@@ -11,7 +11,7 @@ dependencies = ["nix-search-tv", "fzf"]
 [[launcher_provider]]
 id          = "nix-search-provider"
 entry       = "provider.luau"
-prefix      = "/nix"
+prefix      = "nix"
 glyph       = "snowflake"
 debounce_ms = 80
 
