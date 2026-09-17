@@ -17,7 +17,7 @@ Install `nix-search-tv` and `fzf` on `PATH`.
 
 ## Usage
 
-Type /nix <query> in the launcher to fuzzy-search every index your nix-search-tv installation provides. By default nixpkgs, NixOS options, Home Manager options and NUR. Each result shows the attribute or option name with its source underneath.
+Type /nix [query] in the launcher to fuzzy-search every index your nix-search-tv installation provides. By default nixpkgs, NixOS options, Home Manager options and NUR. Each result shows the attribute or option name with its source underneath.
 
 Press Enter on a result to open its action list:
 
