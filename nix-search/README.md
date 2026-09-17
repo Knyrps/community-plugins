@@ -10,7 +10,7 @@ it.
 | Field | Value |
 | --- | --- |
 | ID | `knyrps/nix-search` |
-| Entries | service: `nix-search-index` |
+| Entries | service: `nix-search-index`; launcher_provider: `nix-search-provider` |
 | Launcher Prefix | `/nix` |
 
 ## Requirements
