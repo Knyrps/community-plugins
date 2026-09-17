@@ -5,8 +5,6 @@ it.
 
 ## Plugin
 
-<!-- Copy ids exactly from plugin.toml. Remove rows that do not apply. -->
-
 | Field | Value |
 | --- | --- |
 | ID | `knyrps/nix-search` |
@@ -14,11 +12,6 @@ it.
 | Launcher Prefix | `/nix` |
 
 ## Requirements
-
-<!-- Required when plugin.toml declares dependencies. Mention every dependency
-     using its exact manifest name, for example `example-cli`. Include any
-     authentication, hardware, service, or compositor requirements too. Remove
-     this section only when the plugin has no requirements. -->
 
 Install `nix-search-tv` and `fzf` on `PATH`.
 
@@ -39,15 +32,10 @@ The key list is refreshed from nix-search-tv once a day in the background. Trigg
 
 ## IPC
 
-<!-- Optional unless the plugin exposes actions beyond opening a panel. List
-     exact commands and explain their arguments and effects. -->
-
 ```sh
 noctalia msg plugin knyrps/nix-search:nix-search-index all refresh
 ```
 
 ## Notes
 
-<!-- Optional. Document important side effects and limitations: network access,
-     files written, commands spawned, sensitive data, compositor support, and
-     useful debugging information. -->
+n/a
