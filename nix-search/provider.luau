@@ -9,10 +9,13 @@ local GLYPH = {
     darwin         = "brand-apple",
 }
 
+local HOME = (noctalia.pluginDataDir() or ""):match("^(.-)/%.local/") or "/root"
+local USER = HOME:match("([^/]+)$") or ""
+
 local ICON_DIRS = {
     "/run/current-system/sw/share/icons/hicolor",
-    (os.getenv("HOME") or "") .. "/.nix-profile/share/icons/hicolor",
-    "/etc/profiles/per-user/" .. (os.getenv("USER") or "") .. "/share/icons/hicolor",
+    HOME .. "/.nix-profile/share/icons/hicolor",
+    "/etc/profiles/per-user/" .. USER .. "/share/icons/hicolor",
 }
 
 type Info = { desc: string?, home: string?, icon: string? }
@@ -41,15 +44,16 @@ local function packageIcon(name: string): string?
 end
 
 local function parsePreview(out: string): (string, string?)
+    local clean = out:gsub("\27%[[%d;]*[A-Za-z]", "")
     local lines = {}
-    for l in out:gmatch("[^\n]+") do
+    for l in clean:gmatch("[^\n]+") do
         local t = l:gsub("^%s+", ""):gsub("%s+$", "")
         if #t > 0 then
             table.insert(lines, t)
         end
     end
     local desc = lines[2] or lines[1] or ""
-    local home = out:match("[Hh]omepage:?%s*(%S+)")
+    local home = clean:match("[Hh]omepage:?%s*(%S+)")
     return desc, home
 end
 
@@ -67,14 +71,19 @@ local function actionsFor(line: string, info: Info?)
             subtitle = i.desc or "Loading documentation…",
             icon = i.icon,
             glyph = if i.icon == nil then (GLYPH[idx] or "search") else nil,
-            query = "/nix > " .. line,
+            query = "> " .. line,
         },
         { id = "copy|" .. key, title = "Copy “" .. key .. "”", glyph = "copy" },
     }
 
     if idx == "nixpkgs" then
+        local nixSnippet:string = "environment.systemPackages = with pkgs; [ " .. key .. " ]"
+        local homeSnippet:string = "home.packages = with pkgs; [ " .. key .. " ]"
+
         table.insert(acts, { id = "shell|" .. key, title = "nix shell nixpkgs#" .. key, glyph = "terminal" })
         table.insert(acts, { id = "web|https://search.nixos.org/packages?query=" .. noctalia.string.urlEncode(key), title = "Open on search.nixos.org", glyph = "world" })
+        table.insert(acts, { id = "copy|" .. nixSnippet, title = "Copy snippet for nixpkgs", subtitle = nixSnippet})
+        table.insert(acts, { id = "copy|" .. homeSnippet, title = "Copy snippet for home-manager", subtitle = homeSnippet})
     end
     if i.home then
         table.insert(acts, { id = "web|" .. i.home, title = "Open homepage", glyph = "link" })
@@ -119,7 +128,7 @@ function onQuery(text: string)
             local idx, key = line:match("^(%S+)/%s*(.+)$")
             if idx and key then
                 table.insert(hits, { id = line, title = key, subtitle = idx,
-                    glyph = GLYPH[idx] or "search", query = "/nix > " .. line })
+                    glyph = GLYPH[idx] or "search", query = "> " .. line })
             end
         end
         launcher.setResults(text, hits)
